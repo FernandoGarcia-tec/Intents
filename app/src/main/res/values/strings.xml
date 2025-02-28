@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Intents</string>
+    <string name="lblBtnValidar">Validar usuario</string>
+    <string name="lblBtn">Regresar</string>
+</resources>
