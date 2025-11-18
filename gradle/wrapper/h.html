@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan de Fitness Interactivo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ==================================== */
+        /* 1. ESTILOS BASE Y TIPOGRAFÍA         */
+        /* ==================================== */
+        :root {
+            --color-primary: #4CAF50; /* Verde Fitness */
+            --color-secondary: #FFC107; /* Amarillo de Énfasis */
+            --color-background: #121212; /* Fondo Muy Oscuro */
+            --color-card-bg: #1e1e1e; /* Fondo de Tarjeta */
+            --color-text-light: #f0f0f0;
+            --color-text-dimmed: #b0b0b0;
+            --border-radius: 8px;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--color-background);
+            color: var(--color-text-light);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: var(--color-primary);
+            text-align: center;
+            font-weight: 700;
+            margin-bottom: 40px;
+            border-bottom: 3px solid var(--color-primary);
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: var(--color-text-light);
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-left: 10px;
+            border-left: 5px solid var(--color-secondary);
+        }
+
+        /* ==================================== */
+        /* 2. DISEÑO RESPONSIVO (GRID & FLEX)   */
+        /* ==================================== */
+        .plan-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 992px) {
+            .plan-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-card {
+            background-color: var(--color-card-bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ==================================== */
+        /* 3. ESTILOS DE RUTINA INTERACTIVA     */
+        /* ==================================== */
+
+        .routine-day {
+            background-color: #2a2a2a;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .routine-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #333;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .routine-header:hover {
+            background-color: #444;
+        }
+
+        .routine-header h3 {
+            margin: 0;
+            font-size: 1.1em;
+            color: var(--color-primary);
+            display: flex;
+            align-items: center;
+        }
+        
+        /* BARRA DE PROGRESO DEL DÍA */
+        .day-progress-bar {
+            width: 120px;
+            height: 10px;
+            background-color: #555;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #666;
+        }
+        
+        .day-progress-fill {
+            width: 0%; /* Inicia en 0 */
+            height: 100%;
+            background-color: var(--color-primary);
+            transition: width 0.4s ease-out;
+        }
+
+        .routine-details {
+            padding: 15px 20px;
+            border-top: 1px solid #444;
+            display: none; /* Oculto por defecto */
+        }
+        
+        .routine-details.active {
+            display: block; 
+        }
+
+        /* ESTILOS POR EJERCICIO Y SETS */
+        .exercise-item {
+            display: flex;
+            flex-wrap: wrap; /* Para responsividad en móviles */
+            justify-content: space-between;
+            align-items: center;
+            list-style-type: none;
+            padding: 12px 0;
+            border-bottom: 1px dashed #3a3a3a;
+        }
+        
+        .exercise-item:last-child {
+            border-bottom: none;
+        }
+
+        .exercise-info {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+
+        .exercise-info strong {
+            font-size: 0.95em;
+            color: var(--color-text-light);
+        }
+        
+        .exercise-info small {
+            font-size: 0.85em;
+            color: var(--color-secondary);
+            display: block;
+        }
+
+        .sets-tracker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap; /* Para que los sets pasen abajo si no caben */
+            margin-top: 5px; /* Margen en móvil */
+        }
+
+        .set-box {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--color-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        
+        .set-box.completed {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+        }
+
+        /* Checkmark (palomita) para sets completados */
+        .set-box.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #121212;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 480px) {
+            .exercise-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .sets-tracker {
+                margin-top: 10px;
+            }
+        }
+
+
+        /* ==================================== */
+        /* 4. ESTILOS DE NUTRICIÓN (Sin cambios) */
+        /* ==================================== */
+        
+        .meal-card {
+            background-color: #2a2a2a;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            border-left: 5px solid var(--color-primary);
+        }
+
+        .meal-card h4 {
+            margin-top: 0;
+            color: var(--color-secondary);
+            font-weight: 600;
+        }
+
+        .meal-card ul { list-style: none; padding-left: 0; }
+        .meal-card li { color: var(--color-text-dimmed); margin-bottom: 5px; }
+        .meal-card li::before { content: '•'; color: var(--color-secondary); font-weight: bold; display: inline-block; width: 1em; margin-left: -1em; }
+
+        .key-recommendations ul { list-style: none; padding-left: 0; }
+        .key-recommendations li { padding: 10px; border-bottom: 1px solid #333; color: var(--color-text-dimmed); }
+        .key-recommendations li::before { content: '✓'; color: var(--color-primary); font-weight: bold; margin-right: 8px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>PLAN DE FITNESS INTERACTIVO 📈</h1>
+
+        <div class="plan-grid">
+            
+            <section class="section-card" id="routine-section">
+                <h2>🏋️ Rutina de Entrenamiento Semanal</h2>
+                <p style="color: var(--color-text-dimmed); margin-bottom: 25px;">Toca la rutina para ver los ejercicios. Marca cada set completado.</p>
+                
+                <div class="routine-day" data-day="lunes">
+                    <div class="routine-header" onclick="toggleDetails(this)">
+                        <h3>LUNES – Pecho + Tríceps</h3>
+                        <div class="day-progress-bar"><div class="day-progress-fill"></div></div>
+                    </div>
+                    <ul class="routine-details">
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Press de banca o press con mancuernas</strong><small>4x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Press inclinado con mancuernas</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Aperturas planas</strong><small>3x15</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Fondos en banco o polea tríceps</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Extensión de tríceps sobre la cabeza</strong><small>3x15</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Plancha abdominal</strong><small>3x30 seg</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="routine-day" data-day="martes">
+                    <div class="routine-header" onclick="toggleDetails(this)">
+                        <h3>MARTES – Espalda + Bíceps</h3>
+                        <div class="day-progress-bar"><div class="day-progress-fill"></div></div>
+                    </div>
+                    <ul class="routine-details">
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Jalón al pecho</strong><small>4x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Remo con barra o mancuerna</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Peso muerto rumano (ligero)</strong><small>3x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Curl con barra o mancuernas</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Curl martillo</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Abdominales en máquina o piso</strong><small>3x15</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="routine-day" data-day="miercoles">
+                    <div class="routine-header" onclick="toggleDetails(this)">
+                        <h3>MIÉRCOLES – Piernas</h3>
+                        <div class="day-progress-bar"><div class="day-progress-fill"></div></div>
+                    </div>
+                    <ul class="routine-details">
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Sentadilla libre o prensa</strong><small>4x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Desplantes o zancadas</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Peso muerto piernas semirrígidas</strong><small>3x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Elevaciones de talones (pantorrilla)</strong><small>3x20</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Core (crunch o plancha lateral)</strong><small>3x15</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="routine-day" data-day="jueves">
+                    <div class="routine-header" onclick="toggleDetails(this)">
+                        <h3>JUEVES – Hombros + Core</h3>
+                        <div class="day-progress-bar"><div class="day-progress-fill"></div></div>
+                    </div>
+                    <ul class="routine-details">
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Press militar con mancuernas</strong><small>4x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Elevaciones laterales</strong><small>3x15</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Pájaros (posterior de hombro)</strong><small>3x15</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Encogimientos con mancuernas</strong><small>3x20</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Plancha frontal</strong><small>3x40 seg</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Giros rusos</strong><small>3x20</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="routine-day" data-day="viernes">
+                    <div class="routine-header" onclick="toggleDetails(this)">
+                        <h3>VIERNES – Pecho + Espalda</h3>
+                        <div class="day-progress-bar"><div class="day-progress-fill"></div></div>
+                    </div>
+                    <ul class="routine-details">
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Press inclinado</strong><small>3x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Jalón cerrado al pecho</strong><small>3x10</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Aperturas inclinadas</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Remo con barra o polea</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Curl de bíceps concentrado</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Extensión tríceps cuerda</strong><small>3x12</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Giros rusos</strong><small>3x20</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="routine-day" data-day="sabado">
+                    <div class="routine-header" onclick="toggleDetails(this)">
+                        <h3>SÁBADO – Full Body / Circuito (3 Rondas)</h3>
+                        <div class="day-progress-bar"><div class="day-progress-fill"></div></div>
+                    </div>
+                    <ul class="routine-details">
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Ronda 1</strong><small>Completar todo el circuito</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Ronda 2</strong><small>Completar todo el circuito</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                        <li class="exercise-item">
+                            <div class="exercise-info"><strong>Ronda 3</strong><small>Completar todo el circuito</small></div>
+                            <div class="sets-tracker">
+                                <div class="set-box" onclick="toggleSet(this)"></div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+            
+            <aside>
+                <section class="section-card" id="nutrition-section">
+                    <h2>🍎 Plan de Alimentación Base</h2>
+                    <p style="color: var(--color-text-dimmed); font-size: 0.9em;">**2,200–2,400 kcal** aprox. para recomposición.</p>
+                    
+                    <div class="meal-card">
+                        <h4>Desayuno (8:30 a.m.)</h4>
+                        <ul>
+                            <li>4 claras + 2 huevos enteros</li>
+                            <li>2 rebanadas de pan integral o 1 papa cocida</li>
+                            <li>½ aguacate o 1 cda de aceite de oliva</li>
+                            <li>Café o té sin azúcar</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="meal-card">
+                        <h4>Comida (3:30 p.m.)</h4>
+                        <ul>
+                            <li>150 g carne de res o puerco magro</li>
+                            <li>1 taza de arroz cocido o papa cocida</li>
+                            <li>Ensalada de jitomate, cebolla, cilantro y limón</li>
+                            <li>1 pepino o jícama como snack</li>
+                        </ul>
+                    </div>
+
+                    <div class="meal-card">
+                        <h4>Cena (7:00 p.m.)</h4>
+                        <ul>
+                            <li>1 lata de atún o 150 g de pollo a la plancha</li>
+                            <li>Verduras salteadas o al vapor (zanahoria, calabaza, brócoli)</li>
+                            <li>1 porción pequeña de papa o tortilla integral (opcional)</li>
+                        </ul>
+                    </div>
+
+                    <div class="meal-card" style="border-left: 5px solid var(--color-secondary);">
+                        <h4>Post-Entreno (Opcional)</h4>
+                        <ul>
+                            <li>1 scoop de proteína (si la usas) o</li>
+                            <li>1 vaso de leche descremada + 1 fruta pequeña</li>
+                        </ul>
+                    </div>
+                </section>
+                
+                <section class="section-card key-recommendations" style="margin-top: 30px;">
+                    <h2>💡 Recomendaciones Clave</h2>
+                    <ul>
+                        <li>Toma **2.5–3 litros de agua** al día.</li>
+                        <li>Evita bebidas con azúcar y pan dulce.</li>
+                        <li>Dormir **mínimo 7 horas** diarias.</li>
+                        <li>Cada 4 semanas, aumenta peso progresivamente.</li>
+                        <li>Toma medidas (peso, cintura, brazo) cada 3 semanas.</li>
+                    </ul>
+                </section>
+
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        // Clave única para el LocalStorage de este plan
+        const STORAGE_KEY = 'fitnessPlanState_v3';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState(); // Cargar el estado guardado al iniciar
+        });
+
+        // Función para expandir/contraer los detalles de la rutina
+        function toggleDetails(headerElement) {
+            const details = headerElement.nextElementSibling;
+            details.classList.toggle('active');
+        }
+
+        // Función para marcar/desmarcar un set
+        function toggleSet(setElement) {
+            setElement.classList.toggle('completed');
+            
+            // Encontrar los elementos padres para saber qué guardar
+            const exerciseItem = setElement.closest('.exercise-item');
+            const routineDay = setElement.closest('.routine-day');
+            const dayKey = routineDay.getAttribute('data-day');
+            
+            // Encontrar el índice del ejercicio y del set
+            const exerciseIndex = Array.from(routineDay.querySelectorAll('.exercise-item')).indexOf(exerciseItem);
+            const setIndex = Array.from(exerciseItem.querySelectorAll('.set-box')).indexOf(setElement);
+            
+            const isCompleted = setElement.classList.contains('completed');
+            
+            // Guardar el estado
+            saveSetState(dayKey, exerciseIndex, setIndex, isCompleted);
+            
+            // Actualizar la barra de progreso del día
+            updateDayProgress(routineDay);
+        }
+
+        // Función para actualizar la barra de progreso de un día
+        function updateDayProgress(routineDayElement) {
+            const allSets = routineDayElement.querySelectorAll('.set-box');
+            const completedSets = routineDayElement.querySelectorAll('.set-box.completed');
+            
+            const totalSets = allSets.length;
+            const totalCompleted = completedSets.length;
+            
+            const percentage = (totalSets === 0) ? 0 : (totalCompleted / totalSets) * 100;
+            
+            const progressBarFill = routineDayElement.querySelector('.day-progress-fill');
+            if (progressBarFill) {
+                progressBarFill.style.width = percentage + '%';
+            }
+        }
+
+        // --- Funciones de Guardado y Carga (LocalStorage) ---
+
+        // Guarda el estado de un set específico
+        function saveSetState(dayKey, exerciseIndex, setIndex, isCompleted) {
+            const masterState = getMasterState();
+            
+            // Asegurarse de que las estructuras de objeto/array existan
+            if (!masterState[dayKey]) {
+                masterState[dayKey] = {};
+            }
+            if (!masterState[dayKey][exerciseIndex]) {
+                masterState[dayKey][exerciseIndex] = [];
+            }
+            
+            // Guardar el estado (true/false)
+            masterState[dayKey][exerciseIndex][setIndex] = isCompleted;
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(masterState));
+        }
+
+        // Carga todo el estado guardado y actualiza la UI
+        function loadState() {
+            const masterState = getMasterState();
+            
+            document.querySelectorAll('.routine-day').forEach(routineDay => {
+                const dayKey = routineDay.getAttribute('data-day');
+                
+                if (masterState[dayKey]) {
+                    routineDay.querySelectorAll('.exercise-item').forEach((exerciseItem, exerciseIndex) => {
+                        if (masterState[dayKey][exerciseIndex]) {
+                            exerciseItem.querySelectorAll('.set-box').forEach((setElement, setIndex) => {
+                                if (masterState[dayKey][exerciseIndex][setIndex] === true) {
+                                    setElement.classList.add('completed');
+                                }
+                            });
+                        }
+                    });
+                }
+                
+                // Actualizar la barra de progreso para este día después de cargar
+                updateDayProgress(routineDay);
+            });
+        }
+
+        // Obtiene el objeto de estado completo desde LocalStorage
+        function getMasterState() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+        }
+    </script>
+</body>
+</html>
